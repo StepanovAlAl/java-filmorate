@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 @RestController
 @RequestMapping("/films")
 @Slf4j
+@Validated
 public class FilmController {
     private final HashMap<Integer, Film> films = new HashMap<>();
     private int idCounter = 1;
@@ -41,7 +43,6 @@ public class FilmController {
             existingFilm.setDescription(film.getDescription());
         }
         if (film.getReleaseDate() != null) {
-            validateReleaseDate(film);
             existingFilm.setReleaseDate(film.getReleaseDate());
         }
         if (film.getDuration() != 0) {
@@ -57,9 +58,4 @@ public class FilmController {
         return films.values();
     }
 
-    private void validateReleaseDate(Film film) {
-        if (film.getReleaseDate() != null && film.getReleaseDate().isBefore(MINIMAL_RELEASE_DATE)) {
-            throw new ValidationException("Дата релиза должна быть не раньше 28 декабря 1895 года");
-        }
-    }
 }

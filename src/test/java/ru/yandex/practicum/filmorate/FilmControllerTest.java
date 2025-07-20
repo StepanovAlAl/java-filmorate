@@ -1,19 +1,29 @@
 package ru.yandex.practicum.filmorate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import org.junit.jupiter.api.BeforeEach;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class FilmControllerTest {
+    private static Validator validator;
     private FilmController filmController;
+
+    @BeforeAll
+    static void setup() {
+        validator = Validation.buildDefaultValidatorFactory().getValidator();
+    }
 
     @BeforeEach
     void setUp() {
@@ -21,10 +31,25 @@ class FilmControllerTest {
     }
 
     @Test
+    void shouldCreateValidFilm() {
+        Film film = new Film();
+        film.setName("Correct Film");
+        film.setDescription("Valid description");
+        film.setReleaseDate(LocalDate.of(2000, 1, 1));
+        film.setDuration(120);
+
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertTrue(violations.isEmpty(), "Корректный фильм должен проходить валидацию.");
+    }
+
+    @Test
     void emptyFilmName() {
         Film film = new Film();
         film.setName("");
-        assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для пустого названия");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Название не может быть пустым")));
     }
 
     @Test
@@ -32,7 +57,10 @@ class FilmControllerTest {
         Film film = new Film();
         film.setName("Test");
         film.setDescription("a".repeat(201));
-        assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для слишком длинного описания");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Максимальная длина описания — 200 символов")));
     }
 
     @Test
@@ -40,15 +68,11 @@ class FilmControllerTest {
         Film film = new Film();
         film.setName("Test");
         film.setDescription("a".repeat(200));
-        assertDoesNotThrow(() -> filmController.createFilm(film));
-    }
+        film.setReleaseDate(LocalDate.of(2000, 1, 1));
+        film.setDuration(120);
 
-    @Test
-    void minReleaseDateFail() {
-        Film film = new Film();
-        film.setName("Test");
-        film.setReleaseDate(LocalDate.of(1895, 12, 27));
-        assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertTrue(violations.isEmpty(), "Описание длиной 200 символов должно проходить валидацию");
     }
 
     @Test
@@ -56,7 +80,11 @@ class FilmControllerTest {
         Film film = new Film();
         film.setName("Test");
         film.setReleaseDate(LocalDate.of(1895, 12, 28));
-        assertDoesNotThrow(() -> filmController.createFilm(film));
+        film.setDescription("Description");
+        film.setDuration(120);
+
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertTrue(violations.isEmpty(), "Минимальная допустимая дата релиза должна проходить валидацию");
     }
 
     @Test
@@ -64,7 +92,10 @@ class FilmControllerTest {
         Film film = new Film();
         film.setName("Test");
         film.setDuration(-1);
-        assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для отрицательной продолжительности");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Продолжительность фильма должна быть положительным числом")));
     }
 
     @Test
@@ -72,7 +103,10 @@ class FilmControllerTest {
         Film film = new Film();
         film.setName("Test");
         film.setDuration(0);
-        assertThrows(ValidationException.class, () -> filmController.createFilm(film));
+
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для нулевой продолжительности");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Продолжительность фильма должна быть положительным числом")));
     }
 
     @Test

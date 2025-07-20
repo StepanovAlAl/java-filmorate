@@ -1,19 +1,29 @@
 package ru.yandex.practicum.filmorate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import org.junit.jupiter.api.BeforeEach;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class UserControllerTest {
+    private static Validator validator;
     private UserController userController;
+
+    @BeforeAll
+    static void setup() {
+        validator = Validation.buildDefaultValidatorFactory().getValidator();
+    }
 
     @BeforeEach
     void setUp() {
@@ -25,7 +35,10 @@ class UserControllerTest {
         User user = new User();
         user.setEmail("InvalidUserEmail");
         user.setLogin("login");
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
+
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для неверного email");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Электронная почта должна содержать символ @")));
     }
 
     @Test
@@ -33,7 +46,10 @@ class UserControllerTest {
         User user = new User();
         user.setEmail("test@yandex.ru");
         user.setLogin("");
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
+
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для пустого логина");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Логин не может быть пустым")));
     }
 
     @Test
@@ -41,7 +57,10 @@ class UserControllerTest {
         User user = new User();
         user.setEmail("test@yandex.ru");
         user.setLogin("login with spaces");
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
+
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для логина с пробелами");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Логин не может содержать пробелы")));
     }
 
     @Test
@@ -50,7 +69,10 @@ class UserControllerTest {
         user.setEmail("test@yandex.ru");
         user.setLogin("login");
         user.setBirthday(LocalDate.now().plusDays(1));
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
+
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для даты рождения в будущем");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Дата рождения не может быть в будущем")));
     }
 
     @Test
