@@ -35,6 +35,7 @@ class UserControllerTest {
         user.setLogin("");
         assertThrows(ValidationException.class, () -> userController.createUser(user));
     }
+
     @Test
     void loginContainingSpacesFail() {
         User user = new User();
