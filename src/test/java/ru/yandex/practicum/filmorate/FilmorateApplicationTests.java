@@ -20,14 +20,14 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void EmptyFilmName() {
+	void emptyFilmName() {
 		Film film = new Film();
 		film.setName("");
 		assertThrows(ValidationException.class, () -> filmController.createFilm(film));
 	}
 
 	@Test
-	void TooLongFilmDescription() {
+	void tooLongFilmDescription() {
 		Film film = new Film();
 		film.setName("Test");
 		film.setDescription("a".repeat(201));
@@ -35,7 +35,7 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void InvalidUserEmail() {
+	void invalidUserEmail() {
 		User user = new User();
 		user.setEmail("InvalidUserEmail");
 		user.setLogin("login");
@@ -43,7 +43,7 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void EmptyUserLogin() {
+	void emptyUserLogin() {
 		User user = new User();
 		user.setEmail("test@yandex.ru");
 		user.setLogin("");
