@@ -1,0 +1,99 @@
+package ru.yandex.practicum.filmorate;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.controller.UserController;
+import org.junit.jupiter.api.BeforeEach;
+import ru.yandex.practicum.filmorate.model.User;
+
+import java.time.LocalDate;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@SpringBootTest
+class UserControllerTest {
+    private static Validator validator;
+    private UserController userController;
+
+    @BeforeAll
+    static void setup() {
+        validator = Validation.buildDefaultValidatorFactory().getValidator();
+    }
+
+    @BeforeEach
+    void setUp() {
+        userController = new UserController();
+    }
+
+    @Test
+    void invalidUserEmailFail() {
+        User user = new User();
+        user.setEmail("InvalidUserEmail");
+        user.setLogin("login");
+
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для неверного email");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Электронная почта должна содержать символ @")));
+    }
+
+    @Test
+    void emptyUserLoginFail() {
+        User user = new User();
+        user.setEmail("test@yandex.ru");
+        user.setLogin("");
+
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для пустого логина");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Логин не может быть пустым")));
+    }
+
+    @Test
+    void loginContainingSpacesFail() {
+        User user = new User();
+        user.setEmail("test@yandex.ru");
+        user.setLogin("login with spaces");
+
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для логина с пробелами");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Логин не может содержать пробелы")));
+    }
+
+    @Test
+    void futureBirthdayFail() {
+        User user = new User();
+        user.setEmail("test@yandex.ru");
+        user.setLogin("login");
+        user.setBirthday(LocalDate.now().plusDays(1));
+
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для даты рождения в будущем");
+        assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Дата рождения не может быть в будущем")));
+    }
+
+    @Test
+    void emptyNameReplacedByLogin() {
+        User user = new User();
+        user.setEmail("test@yandex.ru");
+        user.setLogin("login");
+        User createdUser = userController.createUser(user);
+        assertEquals("login", createdUser.getName());
+    }
+
+    @Test
+    void updatePartDataPass() {
+        User user = new User();
+        user.setEmail("test@yandex.ru");
+        user.setLogin("login");
+        User createdUser = userController.createUser(user);
+
+        User update = new User();
+        update.setId(createdUser.getId());
+        update.setLogin("newlogin");
+        assertDoesNotThrow(() -> userController.updateUser(update));
+    }
+}
