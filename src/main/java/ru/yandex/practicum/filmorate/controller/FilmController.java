@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.model.ValidationGroups;
@@ -27,6 +29,9 @@ public class FilmController {
     @PostMapping
     @Validated(ValidationGroups.Create.class)
     public Film createFilm(@Valid @RequestBody Film film) {
+        if (film.getId() != null) {
+            throw new ValidationException("ID должен быть null при создании");
+        }
         log.info("Добавление фильма {}", film);
         return filmService.create(film);
     }
@@ -40,7 +45,11 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public Film getFilm(@PathVariable int id) {
-        return filmService.getById(id);
+        Film film = filmService.getById(id);
+        if (film == null) {
+            throw new NotFoundException("Фильм не найден! id=" + id);
+        }
+        return film;
     }
 
     @GetMapping

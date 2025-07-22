@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import org.junit.jupiter.api.BeforeEach;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.ValidationGroups;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -100,5 +101,18 @@ class UserControllerTest {
         update.setId(createdUser.getId());
         update.setLogin("newlogin");
         assertDoesNotThrow(() -> userController.updateUser(update));
+    }
+
+    @Test
+    void updateNonExistentUserReturn404() {
+        User update = new User();
+        update.setId(9999);
+        update.setLogin("doloreUpdate");
+
+        Exception exception = assertThrows(NotFoundException.class, () -> {
+            userService.update(update);
+        });
+
+        assertEquals("Пользователь не найден! id=9999", exception.getMessage());
     }
 }

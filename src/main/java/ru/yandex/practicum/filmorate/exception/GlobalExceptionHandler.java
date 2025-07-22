@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+//import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +14,13 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleNotFoundException(NotFoundException ex) {
+        log.warn("Объект не найден: {}", ex.getMessage());
+        return Map.of("error", ex.getMessage());
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -35,12 +42,12 @@ public class GlobalExceptionHandler {
         return Map.of("error", ex.getMessage());
     }
 
-    @ExceptionHandler(ResponseStatusException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleNotFoundException(ResponseStatusException ex) {
-        log.warn("Объект не найден: {}", ex.getReason());
-        return Map.of("error", ex.getReason());
-    }
+    //@ExceptionHandler(ResponseStatusException.class)
+    //@ResponseStatus(HttpStatus.NOT_FOUND)
+    //public Map<String, String> handleNotFoundException(ResponseStatusException ex) {
+    //    log.warn("Объект не найден: {}", ex.getReason());
+    //    return Map.of("error", ex.getReason());
+    //}
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

@@ -11,7 +11,7 @@ public class Film {
 
     @Null(groups = ValidationGroups.Create.class)
     @NotNull(groups = ValidationGroups.Update.class)
-    private int id;
+    private Integer id;
 
     @NotBlank(groups = ValidationGroups.Create.class, message = "Название не может быть пустым")
     private String name;
