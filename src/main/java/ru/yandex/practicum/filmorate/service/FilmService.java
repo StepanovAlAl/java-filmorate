@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.*;
@@ -13,8 +12,8 @@ import java.util.*;
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
-    private final Map<Integer, Set<Integer>> likes = new HashMap<>();
     private final UserService userService;
+    private final Map<Integer, Set<Integer>> likes = new HashMap<>();
 
     @Autowired
     public FilmService(FilmStorage filmStorage, UserService userService) {
