@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import org.junit.jupiter.api.BeforeEach;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.ValidationGroups;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -47,7 +48,7 @@ class UserControllerTest {
         user.setEmail("test@yandex.ru");
         user.setLogin("");
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, ValidationGroups.Create.class);
         assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для пустого логина");
         assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Логин не может быть пустым")));
     }

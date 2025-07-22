@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.ValidationGroups;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ public class UserController {
     private int idCounter = 1;
 
     @PostMapping
+    @Validated(ValidationGroups.Create.class)
     public User createUser(@Valid @RequestBody User user) {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
@@ -30,6 +32,7 @@ public class UserController {
     }
 
     @PutMapping
+    @Validated(ValidationGroups.Update.class)
     public User updateUser(@Valid @RequestBody User user) {
         if (!users.containsKey(user.getId())) {
             throw new ValidationException("Пользователь не найден! id=" + user.getId());

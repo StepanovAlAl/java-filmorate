@@ -7,13 +7,15 @@ import java.time.LocalDate;
 
 @Data
 public class User {
+    @Null(groups = ValidationGroups.Create.class, message = "ID должен быть null при создании")
+    @NotNull(groups = ValidationGroups.Update.class, message = "ID не может быть null при обновлении")
     private int id;
 
-    @NotBlank(message = "Электронная почта не может быть пустой")
+    @NotBlank(groups = ValidationGroups.Create.class, message = "Электронная почта не может быть пустой")
     @Email(message = "Электронная почта должна содержать символ @")
     private String email;
 
-    @NotBlank(message = "Логин не может быть пустым")
+    @NotBlank(groups = ValidationGroups.Create.class, message = "Логин не может быть пустым")
     @Pattern(regexp = "\\S+", message = "Логин не может содержать пробелы")
     private String login;
 

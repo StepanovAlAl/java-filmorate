@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import org.junit.jupiter.api.BeforeEach;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.ValidationGroups;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -47,7 +48,7 @@ class FilmControllerTest {
         Film film = new Film();
         film.setName("");
 
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film, ValidationGroups.Create.class);
         assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для пустого названия");
         assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Название не может быть пустым")));
     }

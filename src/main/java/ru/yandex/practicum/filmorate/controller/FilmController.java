@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.ValidationGroups;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -21,6 +22,7 @@ public class FilmController {
     private static final LocalDate MINIMAL_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
     @PostMapping
+    @Validated(ValidationGroups.Create.class)
     public Film createFilm(@Valid @RequestBody Film film) {
         film.setId(idCounter++);
         films.put(film.getId(), film);
@@ -29,6 +31,7 @@ public class FilmController {
     }
 
     @PutMapping
+    @Validated(ValidationGroups.Update.class)
     public Film updateFilm(@Valid @RequestBody Film film) {
         if (film.getId() == 0 || !films.containsKey(film.getId())) {
             throw new ValidationException("Фильм не найден! id=" + film.getId());
