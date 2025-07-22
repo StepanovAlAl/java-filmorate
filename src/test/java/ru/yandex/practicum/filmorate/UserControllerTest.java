@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.controller.UserController;
 import org.junit.jupiter.api.BeforeEach;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.ValidationGroups;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -20,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserControllerTest {
     private static Validator validator;
     private UserController userController;
+    private UserService userService;
 
     @BeforeAll
     static void setup() {
@@ -28,7 +31,8 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        userController = new UserController();
+        userService = new UserService(new InMemoryUserStorage());
+        userController = new UserController(userService);
     }
 
     @Test

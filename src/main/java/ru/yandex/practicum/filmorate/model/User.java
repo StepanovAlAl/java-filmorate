@@ -9,7 +9,7 @@ import java.time.LocalDate;
 public class User {
     @Null(groups = ValidationGroups.Create.class, message = "ID должен быть null при создании")
     @NotNull(groups = ValidationGroups.Update.class, message = "ID не может быть null при обновлении")
-    private int id;
+    private Integer id;
 
     @NotBlank(groups = ValidationGroups.Create.class, message = "Электронная почта не может быть пустой")
     @Email(message = "Электронная почта должна содержать символ @")

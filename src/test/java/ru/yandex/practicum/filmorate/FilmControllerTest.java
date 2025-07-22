@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.controller.FilmController;
 import org.junit.jupiter.api.BeforeEach;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.ValidationGroups;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -20,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class FilmControllerTest {
     private static Validator validator;
     private FilmController filmController;
+    private FilmService filmService;
 
     @BeforeAll
     static void setup() {
@@ -28,7 +31,8 @@ class FilmControllerTest {
 
     @BeforeEach
     void setUp() {
-        filmController = new FilmController();
+        filmService = new FilmService(new InMemoryFilmStorage());
+        filmController = new FilmController(filmService);
     }
 
     @Test

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +35,13 @@ public class GlobalExceptionHandler {
         return Map.of("error", ex.getMessage());
     }
 
+    @ExceptionHandler(ResponseStatusException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleNotFoundException(ResponseStatusException ex) {
+        log.warn("Объект не найден: {}", ex.getReason());
+        return Map.of("error", ex.getReason());
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleInvalidJson(HttpMessageNotReadableException ex) {
@@ -44,7 +52,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleUnexpectedException(Exception ex) {
-        log.error("Непредвиденная ошибка: {}", ex.getClass(), ex);
+        log.error("Непредвиденная ошибка: {}", ex.getMessage(), ex);
         return Map.of("error", "Внутренняя ошибка сервера");
     }
 }
