@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -10,16 +10,10 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserService userService;
-    private final Map<Integer, Set<Integer>> likes = new HashMap<>();
-
-    @Autowired
-    public FilmService(FilmStorage filmStorage, UserService userService) {
-        this.filmStorage = filmStorage;
-        this.userService = userService;
-    }
 
     public Film create(Film film) {
         return filmStorage.create(film);
@@ -34,7 +28,11 @@ public class FilmService {
     }
 
     public Film getById(int id) {
-        return filmStorage.getById(id);
+        Film film = filmStorage.getById(id);
+        if (film == null) {
+            throw new NotFoundException("Фильм не найден! id=" + id);
+        }
+        return film;
     }
 
     public Collection<Film> getAll() {
@@ -50,7 +48,7 @@ public class FilmService {
         if (user == null) {
             throw new NotFoundException("Пользователь не найден! id=" + userId);
         }
-        likes.computeIfAbsent(filmId, k -> new HashSet<>()).add(userId);
+        film.getLikes().add(userId);
     }
 
     public void removeLike(int filmId, int userId) {
@@ -62,16 +60,14 @@ public class FilmService {
         if (user == null) {
             throw new NotFoundException("Пользователь не найден! id=" + userId);
         }
-        if (likes.containsKey(filmId)) {
-            likes.get(filmId).remove(userId);
-        }
+        film.getLikes().remove(userId);
     }
 
     public List<Film> getPopular(int count) {
         return filmStorage.getAll().stream()
                 .sorted((f1, f2) -> Integer.compare(
-                        likes.getOrDefault(f2.getId(), Collections.emptySet()).size(),
-                        likes.getOrDefault(f1.getId(), Collections.emptySet()).size()))
+                        f2.getLikes().size(),
+                        f1.getLikes().size()))
                 .limit(count)
                 .toList();
     }

@@ -41,13 +41,6 @@ public class GlobalExceptionHandler {
         return Map.of("error", ex.getMessage());
     }
 
-    //@ExceptionHandler(ResponseStatusException.class)
-    //@ResponseStatus(HttpStatus.NOT_FOUND)
-    //public Map<String, String> handleNotFoundException(ResponseStatusException ex) {
-    //    log.warn("Объект не найден: {}", ex.getReason());
-    //    return Map.of("error", ex.getReason());
-    //}
-
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleInvalidJson(HttpMessageNotReadableException ex) {
