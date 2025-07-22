@@ -48,6 +48,11 @@ public class UserService {
     }
 
     public void removeFriend(int userId, int friendId) {
+        User user = userStorage.getById(userId);
+        User friend = userStorage.getById(friendId);
+        if (user == null || friend == null) {
+            throw new NotFoundException("Пользователь не найден");
+        }
         if (friends.containsKey(userId)) {
             friends.get(userId).remove(friendId);
         }
@@ -57,6 +62,9 @@ public class UserService {
     }
 
     public List<User> getFriends(int userId) {
+        if (userStorage.getById(userId) == null) {
+            throw new NotFoundException("Пользователь не найден! id=" + userId);
+        }
         return friends.getOrDefault(userId, Collections.emptySet()).stream()
                 .map(userStorage::getById)
                 .filter(Objects::nonNull)

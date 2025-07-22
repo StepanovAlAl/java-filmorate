@@ -4,17 +4,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+
 import java.util.*;
 
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
     private final Map<Integer, Set<Integer>> likes = new HashMap<>();
+    private final UserService userService;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage) {
+    public FilmService(FilmStorage filmStorage, UserService userService) {
         this.filmStorage = filmStorage;
+        this.userService = userService;
     }
 
     public Film create(Film film) {
@@ -37,15 +42,27 @@ public class FilmService {
         return filmStorage.getAll();
     }
 
-    public void addLike(int id, int userId) {
-        Film film = filmStorage.getById(id);
+    public void addLike(int filmId, int userId) {
+        Film film = filmStorage.getById(filmId);
+        User user = userService.getById(userId);
         if (film == null) {
-            throw new NotFoundException("Фильм не найден! id=" + id);
+            throw new NotFoundException("Фильм не найден! id=" + filmId);
         }
-        likes.computeIfAbsent(id, k -> new HashSet<>()).add(userId);
+        if (user == null) {
+            throw new NotFoundException("Пользователь не найден! id=" + userId);
+        }
+        likes.computeIfAbsent(filmId, k -> new HashSet<>()).add(userId);
     }
 
     public void removeLike(int filmId, int userId) {
+        Film film = filmStorage.getById(filmId);
+        User user = userService.getById(userId);
+        if (film == null) {
+            throw new NotFoundException("Фильм не найден! id=" + filmId);
+        }
+        if (user == null) {
+            throw new NotFoundException("Пользователь не найден! id=" + userId);
+        }
         if (likes.containsKey(filmId)) {
             likes.get(filmId).remove(userId);
         }
