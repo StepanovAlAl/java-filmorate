@@ -8,7 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import org.junit.jupiter.api.BeforeEach;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.ValidationGroups;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -19,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserControllerTest {
     private static Validator validator;
     private UserController userController;
+    private UserService userService;
 
     @BeforeAll
     static void setup() {
@@ -27,7 +32,8 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        userController = new UserController();
+        userService = new UserService(new InMemoryUserStorage());
+        userController = new UserController(userService);
     }
 
     @Test
@@ -47,7 +53,7 @@ class UserControllerTest {
         user.setEmail("test@yandex.ru");
         user.setLogin("");
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, ValidationGroups.Create.class);
         assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для пустого логина");
         assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Логин не может быть пустым")));
     }
@@ -95,5 +101,18 @@ class UserControllerTest {
         update.setId(createdUser.getId());
         update.setLogin("newlogin");
         assertDoesNotThrow(() -> userController.updateUser(update));
+    }
+
+    @Test
+    void updateNonExistentUserReturn404() {
+        User update = new User();
+        update.setId(9999);
+        update.setLogin("doloreUpdate");
+
+        Exception exception = assertThrows(NotFoundException.class, () -> {
+            userService.update(update);
+        });
+
+        assertEquals("Пользователь не найден! id=9999", exception.getMessage());
     }
 }

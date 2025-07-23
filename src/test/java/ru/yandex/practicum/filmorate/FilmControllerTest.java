@@ -9,6 +9,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import org.junit.jupiter.api.BeforeEach;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.ValidationGroups;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -19,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class FilmControllerTest {
     private static Validator validator;
     private FilmController filmController;
+    private FilmService filmService;
+    private UserService userService;
 
     @BeforeAll
     static void setup() {
@@ -27,7 +34,9 @@ class FilmControllerTest {
 
     @BeforeEach
     void setUp() {
-        filmController = new FilmController();
+        userService = new UserService(new InMemoryUserStorage());
+        filmService = new FilmService(new InMemoryFilmStorage(), userService);
+        filmController = new FilmController(filmService);
     }
 
     @Test
@@ -47,7 +56,7 @@ class FilmControllerTest {
         Film film = new Film();
         film.setName("");
 
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film, ValidationGroups.Create.class);
         assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для пустого названия");
         assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Название не может быть пустым")));
     }
