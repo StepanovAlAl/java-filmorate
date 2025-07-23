@@ -26,5 +26,17 @@ public class User {
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
 
-    private Set<Integer> friends = new HashSet<>();
+    private final Set<Integer> friends = new HashSet<>();
+
+    public void addFriend(int friendId) {
+        friends.add(friendId);
+    }
+
+    public void removeFriend(int friendId) {
+        friends.remove(friendId);
+    }
+
+    public Set<Integer> getFriends() {
+        return new HashSet<>(friends);
+    }
 }

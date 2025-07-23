@@ -48,7 +48,7 @@ public class FilmService {
         if (user == null) {
             throw new NotFoundException("Пользователь не найден! id=" + userId);
         }
-        film.getLikes().add(userId);
+        film.addLike(userId);
     }
 
     public void removeLike(int filmId, int userId) {
@@ -60,14 +60,14 @@ public class FilmService {
         if (user == null) {
             throw new NotFoundException("Пользователь не найден! id=" + userId);
         }
-        film.getLikes().remove(userId);
+        film.removeLike(userId);
     }
 
     public List<Film> getPopular(int count) {
         return filmStorage.getAll().stream()
                 .sorted((f1, f2) -> Integer.compare(
-                        f2.getLikes().size(),
-                        f1.getLikes().size()))
+                        f2.getLikesCount(),
+                        f1.getLikesCount()))
                 .limit(count)
                 .toList();
     }
