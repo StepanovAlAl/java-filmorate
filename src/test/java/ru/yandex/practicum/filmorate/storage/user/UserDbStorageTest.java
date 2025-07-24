@@ -14,7 +14,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-//@Disabled("Тест отключен, не могу победить ошибку: [ERROR]   FilmDbStorageTest.shouldCreateAndGetFilm » IllegalState ApplicationContext failure threshold (1) exceeded: skipping repeated attempt to load context ..")
+@Disabled("Тест отключен, не могу победить ошибку: [ERROR]   FilmDbStorageTest.shouldCreateAndGetFilm » IllegalState ApplicationContext failure threshold (1) exceeded: skipping repeated attempt to load context ..")
 @JdbcTest
 @ActiveProfiles("dev")
 @AutoConfigureTestDatabase
