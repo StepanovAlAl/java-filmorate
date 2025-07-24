@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
@@ -36,5 +37,13 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public void delete(int id) {
         films.remove(id);
+    }
+
+    @Override
+    public List<Film> getPopularFilms(int count) {
+        return films.values().stream()
+                .sorted(Comparator.comparingInt(f -> -f.getLikes().size())) // Сортируем по убыванию количества лайков
+                .limit(count)
+                .collect(Collectors.toList());
     }
 }
