@@ -4,7 +4,6 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.UserController;
@@ -13,14 +12,15 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.ValidationGroups;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
-@Disabled("Тест отключен, так как не связан с БД")
 @SpringBootTest
 class UserControllerTest {
     private static Validator validator;
@@ -34,7 +34,9 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(new InMemoryUserStorage());
+        InMemoryUserStorage userStorage = new InMemoryUserStorage();
+        FriendshipStorage friendshipStorage = mock(FriendshipStorage.class); // Мок, так как не тестируем БД
+        userService = new UserService(userStorage, friendshipStorage);
         userController = new UserController(userService);
     }
 
@@ -45,7 +47,7 @@ class UserControllerTest {
         user.setLogin("login");
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
-        assertFalse(violations.isEmpty(), "Должны быть нарушения валидации для неверного email");
+        assertFalse(violations.isEmpty());
         assertTrue(violations.stream().anyMatch(v -> v.getMessage().contains("Электронная почта должна содержать символ @")));
     }
 

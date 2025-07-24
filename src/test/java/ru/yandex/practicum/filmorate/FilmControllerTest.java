@@ -13,13 +13,15 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.ValidationGroups;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.film.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.film.MpaDbStorage;
 
 import java.time.LocalDate;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 @Disabled("Тест отключен, так как не связан с БД")
 @SpringBootTest
@@ -36,8 +38,9 @@ class FilmControllerTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(new InMemoryUserStorage());
-        filmService = new FilmService(new InMemoryFilmStorage(), userService);
+        InMemoryFilmStorage filmStorage = new InMemoryFilmStorage();
+        UserService userService = mock(UserService.class); // Мок, так как не тестируем взаимодействие
+        filmService = new FilmService(filmStorage, userService, mock(GenreDbStorage.class), mock(MpaDbStorage.class));
         filmController = new FilmController(filmService);
     }
 
