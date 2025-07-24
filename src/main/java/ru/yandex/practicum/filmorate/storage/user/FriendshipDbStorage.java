@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
@@ -15,15 +16,22 @@ public class FriendshipDbStorage implements FriendshipStorage {
 
     @Override
     public void addFriendship(int userId, int friendId) {
-        String sql = "INSERT INTO friendship (user_id, friend_id, status) VALUES (?, ?, false) " +
-                "ON CONFLICT (user_id, friend_id) DO NOTHING";
+        // Проверка существования пользователей
+        if (userDbStorage.getById(userId) == null || userDbStorage.getById(friendId) == null) {
+            throw new NotFoundException("Пользователь не найден");
+        }
+
+        String sql = "MERGE INTO friendship (user_id, friend_id, status) VALUES (?, ?, false)";
         jdbcTemplate.update(sql, userId, friendId);
     }
 
     @Override
     public void removeFriendship(int userId, int friendId) {
         String sql = "DELETE FROM friendship WHERE user_id = ? AND friend_id = ?";
-        jdbcTemplate.update(sql, userId, friendId);
+        int rows = jdbcTemplate.update(sql, userId, friendId);
+        if (rows == 0) {
+            throw new NotFoundException("Дружба между пользователями не найдена");
+        }
     }
 
     @Override

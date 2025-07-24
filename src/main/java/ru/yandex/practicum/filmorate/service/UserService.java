@@ -40,31 +40,28 @@ public class UserService {
         User user = userStorage.getById(userId);
         User friend = userStorage.getById(friendId);
 
-        if (user == null) {
-            throw new NotFoundException("Пользователь не найден! id=" + userId);
+        if (user == null || friend == null) {
+            throw new NotFoundException("Пользователь не найден");
         }
-        if (friend == null) {
-            throw new NotFoundException("Пользователь не найден! id=" + friendId);
-        }
+
         if (userId == friendId) {
             throw new ValidationException("Пользователь не может добавить себя в друзья");
         }
 
         friendshipStorage.addFriendship(userId, friendId);
+        friendshipStorage.addFriendship(friendId, userId); // Взаимная дружба
     }
 
     public void removeFriend(int userId, int friendId) {
         User user = userStorage.getById(userId);
         User friend = userStorage.getById(friendId);
 
-        if (user == null) {
-            throw new NotFoundException("Пользователь не найден! id=" + userId);
-        }
-        if (friend == null) {
-            throw new NotFoundException("Пользователь не найден! id=" + friendId);
+        if (user == null || friend == null) {
+            throw new NotFoundException("Пользователь не найден");
         }
 
         friendshipStorage.removeFriendship(userId, friendId);
+        friendshipStorage.removeFriendship(friendId, userId);
     }
 
     public List<User> getFriends(int userId) {

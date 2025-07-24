@@ -116,7 +116,6 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.queryForList(sql, Integer.class, filmId);
     }
 
-
     @Override
     public List<Film> getPopularFilms(int count) {
         String sql = "SELECT f.*, m.name AS mpa_name, m.description AS mpa_description, " +
@@ -125,10 +124,20 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN mpa m ON f.mpa_id = m.id " +
                 "LEFT JOIN film_likes fl ON f.id = fl.film_id " +
                 "GROUP BY f.id, m.id " +
-                "ORDER BY COUNT(fl.user_id) DESC, f.id ASC " +
+                "ORDER BY likes_count DESC, f.id DESC " +
                 "LIMIT ?";
 
-        return jdbcTemplate.query(sql, filmRowMapper, count);
+        List<Film> films = jdbcTemplate.query(sql, filmRowMapper, count);
+
+        films.sort((f1, f2) -> {
+            int cmp = Integer.compare(f2.getLikes().size(), f1.getLikes().size());
+            if (cmp == 0) {
+                cmp = Integer.compare(f2.getId(), f1.getId());
+            }
+            return cmp;
+        });
+
+        return films;
     }
 
 
