@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -39,17 +40,30 @@ public class UserService {
         User user = userStorage.getById(userId);
         User friend = userStorage.getById(friendId);
 
-        if (user == null || friend == null) {
-            throw new NotFoundException("Пользователь не найден");
+        if (user == null) {
+            throw new NotFoundException("Пользователь не найден! id=" + userId);
+        }
+        if (friend == null) {
+            throw new NotFoundException("Пользователь не найден! id=" + friendId);
+        }
+        if (userId == friendId) {
+            throw new ValidationException("Пользователь не может добавить себя в друзья");
         }
 
         friendshipStorage.addFriendship(userId, friendId);
     }
 
     public void removeFriend(int userId, int friendId) {
-        if (!friendshipStorage.friendshipExists(userId, friendId)) {
-            throw new NotFoundException("Дружба между пользователями не найдена");
+        User user = userStorage.getById(userId);
+        User friend = userStorage.getById(friendId);
+
+        if (user == null) {
+            throw new NotFoundException("Пользователь не найден! id=" + userId);
         }
+        if (friend == null) {
+            throw new NotFoundException("Пользователь не найден! id=" + friendId);
+        }
+
         friendshipStorage.removeFriendship(userId, friendId);
     }
 

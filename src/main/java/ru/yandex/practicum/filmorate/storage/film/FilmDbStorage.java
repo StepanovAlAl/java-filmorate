@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.storage.mappers.FilmRowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,6 +21,7 @@ public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final GenreDbStorage genreDbStorage;
     private final MpaDbStorage mpaDbStorage;
+    private final FilmRowMapper filmRowMapper;
 
     @Override
     public Film create(Film film) {
@@ -114,6 +116,7 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.queryForList(sql, Integer.class, filmId);
     }
 
+
     @Override
     public List<Film> getPopularFilms(int count) {
         String sql = "SELECT f.*, m.name AS mpa_name, m.description AS mpa_description, " +
@@ -122,10 +125,10 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN mpa m ON f.mpa_id = m.id " +
                 "LEFT JOIN film_likes fl ON f.id = fl.film_id " +
                 "GROUP BY f.id, m.id " +
-                "ORDER BY likes_count DESC " +
+                "ORDER BY COUNT(fl.user_id) DESC, f.id ASC " +
                 "LIMIT ?";
 
-        return jdbcTemplate.query(sql, this::mapRowToFilmWithLikes, count);
+        return jdbcTemplate.query(sql, filmRowMapper, count);
     }
 
 
