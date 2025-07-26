@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
@@ -26,14 +27,14 @@ public class GenreDbStorage implements GenreStorage {
     }
 
     public void addFilmGenres(int filmId, Set<Genre> genres) {
-        String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?) "; //+
-        //  "ON CONFLICT (film_id, genre_id) DO NOTHING";
-        genres.forEach(genre -> {
-            if (!genreExistsForFilm(filmId, genre.getId())) {
-                log.info("Добавлены жанры для фильма {}: {}", filmId, genres);
-                jdbcTemplate.update(sql, filmId, genre.getId());
-            }
-        });
+        removeFilmGenres(filmId);
+
+        String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
+        List<Object[]> batchArgs = genres.stream()
+                .map(genre -> new Object[]{filmId, genre.getId()})
+                .collect(Collectors.toList());
+
+        jdbcTemplate.batchUpdate(sql, batchArgs);
     }
 
     private boolean genreExistsForFilm(int filmId, int genreId) {

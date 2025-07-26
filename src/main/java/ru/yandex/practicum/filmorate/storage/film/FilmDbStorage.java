@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.mappers.FilmRowMapper;
 
 import java.util.*;
@@ -33,12 +34,11 @@ public class FilmDbStorage implements FilmStorage {
 
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             log.debug("Добавление жанров для фильма ID {}: {}", filmId, film.getGenres());
-            genreDbStorage.addFilmGenres(filmId, film.getGenres());
+            Set<Genre> uniqueGenres = new LinkedHashSet<>(film.getGenres());
+            genreDbStorage.addFilmGenres(filmId, uniqueGenres);
         }
 
-        Film createdFilm = getById(filmId);
-        log.info("Фильм успешно создан: {}", createdFilm);
-        return createdFilm;
+        return getById(filmId);
     }
 
     @Override
@@ -57,12 +57,11 @@ public class FilmDbStorage implements FilmStorage {
         log.debug("Обновление жанров для фильма ID {}", film.getId());
         genreDbStorage.removeFilmGenres(film.getId());
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            genreDbStorage.addFilmGenres(film.getId(), film.getGenres());
+            Set<Genre> uniqueGenres = new LinkedHashSet<>(film.getGenres());
+            genreDbStorage.addFilmGenres(film.getId(), uniqueGenres);
         }
 
-        Film updatedFilm = getById(film.getId());
-        log.info("Фильм успешно обновлен: {}", updatedFilm);
-        return updatedFilm;
+        return getById(film.getId());
     }
 
     @Override
