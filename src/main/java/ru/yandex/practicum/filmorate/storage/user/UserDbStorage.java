@@ -9,9 +9,8 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import ru.yandex.practicum.filmorate.storage.mappers.UserRowMapper;
+
 import java.util.*;
 
 @Repository

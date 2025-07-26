@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.storage.mappers;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.ResultSet;
