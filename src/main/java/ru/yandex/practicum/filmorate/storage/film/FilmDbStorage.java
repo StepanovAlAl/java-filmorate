@@ -1,46 +1,50 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.mappers.FilmRowMapper;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
+@Slf4j
 @Repository
 @Primary
 @RequiredArgsConstructor
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final GenreDbStorage genreDbStorage;
-    private final MpaDbStorage mpaDbStorage;
     private final FilmRowMapper filmRowMapper;
 
     @Override
     public Film create(Film film) {
+        log.info("Создание фильма: {}", film);
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("films")
                 .usingGeneratedKeyColumns("id");
 
         int filmId = simpleJdbcInsert.executeAndReturnKey(film.toMap()).intValue();
         film.setId(filmId);
+        log.debug("Фильму присвоен ID: {}", filmId);
 
-        if (film.getGenres() != null) {
-            genreDbStorage.addFilmGenres(film.getId(), film.getGenres());
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            log.debug("Добавление жанров для фильма ID {}: {}", filmId, film.getGenres());
+            genreDbStorage.addFilmGenres(filmId, film.getGenres());
         }
 
-        return getById(filmId);
+        Film createdFilm = getById(filmId);
+        log.info("Фильм успешно создан: {}", createdFilm);
+        return createdFilm;
     }
 
     @Override
     public Film update(Film film) {
+        log.info("Обновление фильма ID {}: {}", film.getId(), film);
+
         String sql = "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, mpa_id = ? WHERE id = ?";
         jdbcTemplate.update(sql,
                 film.getName(),
@@ -50,37 +54,36 @@ public class FilmDbStorage implements FilmStorage {
                 film.getMpa().getId(),
                 film.getId());
 
+        log.debug("Обновление жанров для фильма ID {}", film.getId());
         genreDbStorage.removeFilmGenres(film.getId());
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             genreDbStorage.addFilmGenres(film.getId(), film.getGenres());
         }
 
-        return getById(film.getId());
+        Film updatedFilm = getById(film.getId());
+        log.info("Фильм успешно обновлен: {}", updatedFilm);
+        return updatedFilm;
     }
 
     @Override
     public Film getById(int id) {
+        log.debug("Получение фильма по ID: {}", id);
+
         String sql = "SELECT f.*, m.name AS mpa_name, m.description AS mpa_description " +
                 "FROM films f " +
                 "LEFT JOIN mpa m ON f.mpa_id = m.id " +
                 "WHERE f.id = ?";
-        Film film = jdbcTemplate.queryForObject(sql, this::mapRowToFilm, id);
-
-        if (film.getGenres() != null) {
-            Set<Genre> sortedGenres = new TreeSet<>(Comparator.comparingInt(Genre::getId));
-            sortedGenres.addAll(film.getGenres());
-            film.setGenres(sortedGenres);
-        }
-
-        return film;
+        return jdbcTemplate.queryForObject(sql, filmRowMapper, id);
     }
 
     @Override
     public Collection<Film> getAll() {
+        log.debug("Получение всех фильмов");
+
         String sql = "SELECT f.*, m.name AS mpa_name, m.description AS mpa_description " +
                 "FROM films f " +
                 "LEFT JOIN mpa m ON f.mpa_id = m.id";
-        return jdbcTemplate.query(sql, this::mapRowToFilm);
+        return jdbcTemplate.query(sql, filmRowMapper);
     }
 
     @Override
@@ -89,31 +92,20 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sql, id);
     }
 
-    private Film mapRowToFilm(ResultSet rs, int rowNum) throws SQLException {
-        Film film = new Film();
-        film.setId(rs.getInt("id"));
-        film.setName(rs.getString("name"));
-        film.setDescription(rs.getString("description"));
-        film.setReleaseDate(rs.getDate("release_date").toLocalDate());
-        film.setDuration(rs.getInt("duration"));
+    @Override
+    public void addLike(int filmId, int userId) {
+        log.info("Добавление лайка фильму ID {} от пользователя {}", filmId, userId);
 
-        Mpa mpa = new Mpa(
-                rs.getInt("mpa_id"),
-                rs.getString("mpa_name"),
-                rs.getString("mpa_description")
-        );
-        film.setMpa(mpa);
-
-        film.setGenres(new HashSet<>(genreDbStorage.getFilmGenres(film.getId())));
-        Set<Integer> likes = new HashSet<>(getFilmLikes(film.getId()));
-        likes.forEach(userId -> film.addLike(userId));
-
-        return film;
+        String sql = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
+        jdbcTemplate.update(sql, filmId, userId);
     }
 
-    private List<Integer> getFilmLikes(int filmId) {
-        String sql = "SELECT user_id FROM film_likes WHERE film_id = ?";
-        return jdbcTemplate.queryForList(sql, Integer.class, filmId);
+    @Override
+    public void removeLike(int filmId, int userId) {
+        log.info("Удаление лайка фильму ID {} от пользователя {}", filmId, userId);
+
+        String sql = "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?";
+        jdbcTemplate.update(sql, filmId, userId);
     }
 
     @Override
@@ -126,26 +118,7 @@ public class FilmDbStorage implements FilmStorage {
                 "GROUP BY f.id, m.id " +
                 "ORDER BY likes_count DESC, f.id DESC " +
                 "LIMIT ?";
-
-        List<Film> films = jdbcTemplate.query(sql, filmRowMapper, count);
-
-        films.sort((f1, f2) -> {
-            int cmp = Integer.compare(f2.getLikes().size(), f1.getLikes().size());
-            if (cmp == 0) {
-                cmp = Integer.compare(f2.getId(), f1.getId());
-            }
-            return cmp;
-        });
-
-        return films;
+        return jdbcTemplate.query(sql, filmRowMapper, count);
     }
 
-
-    private Film mapRowToFilmWithLikes(ResultSet rs, int rowNum) throws SQLException {
-        Film film = mapRowToFilm(rs, rowNum);
-
-        int likesCount = rs.getInt("likes_count");
-
-        return film;
-    }
 }

@@ -6,10 +6,12 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import ru.yandex.practicum.filmorate.storage.mappers.UserRowMapper;
 import java.util.*;
 
 @Repository
@@ -17,6 +19,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final UserRowMapper userRowMapper;
 
     @Override
     public User create(User user) {
@@ -45,18 +48,18 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User getById(int id) {
+        String sql = "SELECT * FROM users WHERE id = ?";
         try {
-            String sql = "SELECT * FROM users WHERE id = ?";
-            return jdbcTemplate.queryForObject(sql, this::mapRowToUser, id);
+            return jdbcTemplate.queryForObject(sql, userRowMapper, id);
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            throw new NotFoundException("user c id=" + id + " не найден.");
         }
     }
 
     @Override
     public Collection<User> getAll() {
         String sql = "SELECT * FROM users";
-        return jdbcTemplate.query(sql, this::mapRowToUser);
+        return jdbcTemplate.query(sql, userRowMapper);
     }
 
     @Override
@@ -65,22 +68,10 @@ public class UserDbStorage implements UserStorage {
         jdbcTemplate.update(sql, id);
     }
 
-    public User mapRowToUser(ResultSet rs, int rowNum) throws SQLException {
-        User user = new User();
-        user.setId(rs.getInt("id"));
-        user.setEmail(rs.getString("email"));
-        user.setLogin(rs.getString("login"));
-        user.setName(rs.getString("name"));
-        user.setBirthday(rs.getDate("birthday").toLocalDate());
-        return user;
-    }
-
-
     @Override
     public void addFriend(int userId, int friendId) {
-        String sql = "INSERT INTO friendship (user_id, friend_id, status) VALUES (?, ?, ?) " +
-                "ON CONFLICT (user_id, friend_id) DO NOTHING";
-        jdbcTemplate.update(sql, userId, friendId, false);
+        String sql = "INSERT INTO friendship (user_id, friend_id) VALUES (?, ?)";
+        jdbcTemplate.update(sql, userId, friendId);
     }
 
     @Override
@@ -94,7 +85,7 @@ public class UserDbStorage implements UserStorage {
         String sql = "SELECT u.* FROM users u " +
                 "JOIN friendship f ON u.id = f.friend_id " +
                 "WHERE f.user_id = ?";
-        return jdbcTemplate.query(sql, this::mapRowToUser, userId);
+        return jdbcTemplate.query(sql, userRowMapper, userId);
     }
 
     @Override
@@ -102,6 +93,6 @@ public class UserDbStorage implements UserStorage {
         String sql = "SELECT u.* FROM users u " +
                 "JOIN friendship f1 ON u.id = f1.friend_id AND f1.user_id = ? " +
                 "JOIN friendship f2 ON u.id = f2.friend_id AND f2.user_id = ?";
-        return jdbcTemplate.query(sql, this::mapRowToUser, userId, otherId);
+        return jdbcTemplate.query(sql, userRowMapper, userId, otherId);
     }
 }

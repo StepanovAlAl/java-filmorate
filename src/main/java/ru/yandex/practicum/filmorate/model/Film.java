@@ -1,22 +1,23 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Data;
+import lombok.*;
 import jakarta.validation.constraints.*;
 import ru.yandex.practicum.filmorate.validation.MinReleaseDate;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Film {
-    @Null(groups = ValidationGroups.Create.class)
-    @NotNull(groups = ValidationGroups.Update.class)
     private Integer id;
 
-    @NotBlank(groups = ValidationGroups.Create.class, message = "Название не может быть пустым")
+    @NotBlank(message = "Название фильма не может быть пустым")
     private String name;
 
     @Size(max = 200, message = "Максимальная длина описания — 200 символов")
@@ -29,6 +30,13 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     private int duration;
 
+    @NotNull(message = "MPA рейтинг обязателен")
+    private Mpa mpa;
+
+    @Builder.Default
+    private Set<Genre> genres = new HashSet<>();
+
+    @Builder.Default
     private final Set<Integer> likes = new HashSet<>();
 
     public void addLike(int userId) {
@@ -42,9 +50,6 @@ public class Film {
     public int getLikesCount() {
         return likes != null ? likes.size() : 0;
     }
-
-    private Mpa mpa;
-    private Set<Genre> genres = new HashSet<>();
 
     public Map<String, Object> toMap() {
         Map<String, Object> values = new HashMap<>();

@@ -49,7 +49,6 @@ public class UserService {
         }
 
         friendshipStorage.addFriendship(userId, friendId);
-        friendshipStorage.addFriendship(friendId, userId); // Взаимная дружба
     }
 
     public void removeFriend(int userId, int friendId) {
@@ -61,7 +60,7 @@ public class UserService {
         }
 
         friendshipStorage.removeFriendship(userId, friendId);
-        friendshipStorage.removeFriendship(friendId, userId);
+        //friendshipStorage.removeFriendship(friendId, userId);
     }
 
     public List<User> getFriends(int userId) {
