@@ -1,30 +1,54 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Data;
 import jakarta.validation.constraints.*;
+import lombok.*;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
-    @Null(groups = ValidationGroups.Create.class, message = "ID должен быть null при создании")
-    @NotNull(groups = ValidationGroups.Update.class, message = "ID не может быть null при обновлении")
     private Integer id;
 
-    @NotBlank(groups = ValidationGroups.Create.class, message = "Электронная почта не может быть пустой")
-    @Email(message = "Электронная почта должна содержать символ @")
+    @Email(message = "Email должен быть корректным")
+    @NotBlank(message = "Email не может быть пустым")
     private String email;
 
-    @NotBlank(groups = ValidationGroups.Create.class, message = "Логин не может быть пустым")
-    @Pattern(regexp = "\\S+", message = "Логин не может содержать пробелы")
+    @NotBlank(message = "Логин не может быть пустым")
+    @Pattern(regexp = "^\\S+$", message = "Логин не может содержать пробелы")
     private String login;
 
     private String name;
 
-    @PastOrPresent(message = "Дата рождения не может быть в будущем")
+    @Past(message = "Дата рождения должна быть в прошлом")
     private LocalDate birthday;
 
-    private Set<Integer> friends = new HashSet<>();
+    private final Set<Integer> friends = new HashSet<>();
+
+    public void addFriend(int friendId) {
+        friends.add(friendId);
+    }
+
+    public void removeFriend(int friendId) {
+        friends.remove(friendId);
+    }
+
+    public Set<Integer> getFriends() {
+        return new HashSet<>(friends);
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("email", email);
+        values.put("login", login);
+        values.put("name", name);
+        values.put("birthday", birthday);
+        return values;
+    }
 }

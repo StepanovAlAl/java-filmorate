@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
@@ -39,5 +40,52 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public void delete(int id) {
         users.remove(id);
+    }
+
+    @Override
+    public void addFriend(int userId, int friendId) {
+        User user = users.get(userId);
+        User friend = users.get(friendId);
+        if (user != null && friend != null) {
+            user.addFriend(friendId);
+        }
+    }
+
+    @Override
+    public void removeFriend(int userId, int friendId) {
+        User user = users.get(userId);
+        if (user != null) {
+            user.removeFriend(friendId);
+        }
+    }
+
+    @Override
+    public List<User> getFriends(int userId) {
+        User user = users.get(userId);
+        if (user == null) {
+            return Collections.emptyList();
+        }
+        return user.getFriends().stream()
+                .map(users::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<User> getCommonFriends(int userId, int otherId) {
+        User user = users.get(userId);
+        User otherUser = users.get(otherId);
+
+        if (user == null || otherUser == null) {
+            return Collections.emptyList();
+        }
+
+        Set<Integer> commonFriendIds = new HashSet<>(user.getFriends());
+        commonFriendIds.retainAll(otherUser.getFriends());
+
+        return commonFriendIds.stream()
+                .map(users::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }
