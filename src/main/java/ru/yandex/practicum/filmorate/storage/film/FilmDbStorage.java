@@ -7,7 +7,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.mappers.FilmRowMapper;
 
 import java.util.*;
@@ -18,7 +17,6 @@ import java.util.*;
 @RequiredArgsConstructor
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
-    private final GenreDbStorage genreDbStorage;
     private final FilmRowMapper filmRowMapper;
 
     @Override
@@ -32,13 +30,7 @@ public class FilmDbStorage implements FilmStorage {
         film.setId(filmId);
         log.debug("Фильму присвоен ID: {}", filmId);
 
-        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            log.debug("Добавление жанров для фильма ID {}: {}", filmId, film.getGenres());
-            Set<Genre> uniqueGenres = new LinkedHashSet<>(film.getGenres());
-            genreDbStorage.addFilmGenres(filmId, uniqueGenres);
-        }
-
-        return getById(filmId);
+        return film;
     }
 
     @Override
@@ -55,13 +47,8 @@ public class FilmDbStorage implements FilmStorage {
                 film.getId());
 
         log.debug("Обновление жанров для фильма ID {}", film.getId());
-        genreDbStorage.removeFilmGenres(film.getId());
-        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            Set<Genre> uniqueGenres = new LinkedHashSet<>(film.getGenres());
-            genreDbStorage.addFilmGenres(film.getId(), uniqueGenres);
-        }
 
-        return getById(film.getId());
+        return film;
     }
 
     @Override
@@ -118,6 +105,12 @@ public class FilmDbStorage implements FilmStorage {
                 "ORDER BY likes_count DESC, f.id DESC " +
                 "LIMIT ?";
         return jdbcTemplate.query(sql, filmRowMapper, count);
+    }
+
+    @Override
+    public Set<Integer> getFilmLikes(int filmId) {
+        String sql = "SELECT user_id FROM film_likes WHERE film_id = ?";
+        return new HashSet<>(jdbcTemplate.queryForList(sql, Integer.class, filmId));
     }
 
 }

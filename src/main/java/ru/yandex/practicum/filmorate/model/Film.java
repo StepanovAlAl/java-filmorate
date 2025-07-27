@@ -37,7 +37,11 @@ public class Film {
     private Set<Genre> genres = new HashSet<>();
 
     @Builder.Default
-    private final Set<Integer> likes = new HashSet<>();
+    private Set<Integer> likes = new HashSet<>();
+
+    public void setLikes(Set<Integer> likes) {
+        this.likes = likes;
+    }
 
     public void addLike(int userId) {
         likes.add(userId);

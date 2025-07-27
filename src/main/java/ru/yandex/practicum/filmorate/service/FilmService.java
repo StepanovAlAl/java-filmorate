@@ -14,9 +14,8 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.MpaDbStorage;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -57,6 +56,10 @@ public class FilmService {
             log.error("Фильм с ID {} не найден", id);
             throw new NotFoundException("Фильм не найден! id=" + id);
         }
+
+        film.setGenres(new LinkedHashSet<>(genreDbStorage.getFilmGenres(film.getId())));
+        film.setLikes(new HashSet<>(filmStorage.getFilmLikes(film.getId())));
+
         return film;
     }
 
@@ -122,13 +125,18 @@ public class FilmService {
 
     private void validateGenres(Set<Genre> genres) {
         if (genres != null && !genres.isEmpty()) {
-            for (Genre genre : genres) {
-                try {
-                    genreDbStorage.getGenreById(genre.getId());
-                } catch (EmptyResultDataAccessException e) {
-                    log.error("Жанр с ID {} не найден", genre.getId());
-                    throw new NotFoundException("Жанр с id=" + genre.getId() + " не найден");
-                }
+            Set<Integer> genreIds = genres.stream()
+                    .map(Genre::getId)
+                    .collect(Collectors.toSet());
+
+            List<Genre> existingGenres = genreDbStorage.getGenresByIds(genreIds);
+            if (existingGenres.size() != genreIds.size()) {
+                Set<Integer> existingIds = existingGenres.stream()
+                        .map(Genre::getId)
+                        .collect(Collectors.toSet());
+
+                genreIds.removeAll(existingIds);
+                throw new NotFoundException("Жанры с id=" + genreIds + " не найдены");
             }
         }
     }

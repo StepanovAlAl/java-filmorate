@@ -4,15 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import org.springframework.jdbc.core.RowMapper;
 import ru.yandex.practicum.filmorate.storage.film.GenreDbStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 @Slf4j
 @Component
@@ -35,8 +32,7 @@ public class FilmRowMapper implements RowMapper<Film> {
                         rs.getString("mpa_name"),
                         rs.getString("mpa_description")))
                 .build();
-        Set<Genre> genres = new LinkedHashSet<>(genreDbStorage.getFilmGenres(film.getId()));
-        film.setGenres(genres);
+
 
         return film;
     }

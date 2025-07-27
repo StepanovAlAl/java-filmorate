@@ -62,4 +62,10 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .limit(count)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public Set<Integer> getFilmLikes(int filmId) {
+        Film film = films.get(filmId);
+        return film != null ? film.getLikes() : Collections.emptySet();
+    }
 }

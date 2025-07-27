@@ -60,7 +60,6 @@ public class UserService {
         }
 
         friendshipStorage.removeFriendship(userId, friendId);
-        //friendshipStorage.removeFriendship(friendId, userId);
     }
 
     public List<User> getFriends(int userId) {
