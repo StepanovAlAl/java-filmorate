@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import org.springframework.jdbc.core.RowMapper;
-import ru.yandex.practicum.filmorate.storage.film.GenreDbStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,13 +14,12 @@ import java.sql.SQLException;
 @Component
 @RequiredArgsConstructor
 public class FilmRowMapper implements RowMapper<Film> {
-    private final GenreDbStorage genreDbStorage;
 
     @Override
     public Film mapRow(ResultSet rs, int rowNum) throws SQLException {
         log.debug("Маппинг строки ResultSet в объект Film");
 
-        Film film = Film.builder()
+        return Film.builder()
                 .id(rs.getInt("id"))
                 .name(rs.getString("name"))
                 .description(rs.getString("description"))
@@ -34,6 +32,5 @@ public class FilmRowMapper implements RowMapper<Film> {
                 .build();
 
 
-        return film;
     }
 }

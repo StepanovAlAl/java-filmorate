@@ -34,6 +34,9 @@ public class FilmService {
 
         Film createdFilm = filmStorage.create(film);
         log.info("Фильм успешно создан с ID: {}", createdFilm.getId());
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            genreDbStorage.addFilmGenres(createdFilm.getId(), film.getGenres());
+        }
         return createdFilm;
     }
 
@@ -46,26 +49,27 @@ public class FilmService {
 
         Film updatedFilm = filmStorage.update(film);
         log.info("Фильм с ID {} успешно обновлен", updatedFilm.getId());
+        genreDbStorage.removeFilmGenres(updatedFilm.getId());
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            genreDbStorage.addFilmGenres(updatedFilm.getId(), film.getGenres());
+        }
         return updatedFilm;
     }
 
     public Film getById(int id) {
         log.debug("Получение фильма по ID: {}", id);
         Film film = filmStorage.getById(id);
-        if (film == null) {
-            log.error("Фильм с ID {} не найден", id);
-            throw new NotFoundException("Фильм не найден! id=" + id);
+        if (film != null) {
+            film.setGenres(new LinkedHashSet<>(genreDbStorage.getFilmGenres(film.getId())));
         }
-
-        film.setGenres(new LinkedHashSet<>(genreDbStorage.getFilmGenres(film.getId())));
-        film.setLikes(new HashSet<>(filmStorage.getFilmLikes(film.getId())));
-
         return film;
     }
 
     public Collection<Film> getAll() {
         log.debug("Получение всех фильмов");
-        return filmStorage.getAll();
+        Collection<Film> films = filmStorage.getAll();
+        films.forEach(f -> f.setGenres(new LinkedHashSet<>(genreDbStorage.getFilmGenres(f.getId()))));
+        return films;
     }
 
     public void addLike(int filmId, int userId) {

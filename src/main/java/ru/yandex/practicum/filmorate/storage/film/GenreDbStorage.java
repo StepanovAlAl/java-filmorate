@@ -27,13 +27,10 @@ public class GenreDbStorage implements GenreStorage {
     }
 
     public void addFilmGenres(int filmId, Set<Genre> genres) {
-        removeFilmGenres(filmId);
-
         String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
         List<Object[]> batchArgs = genres.stream()
                 .map(genre -> new Object[]{filmId, genre.getId()})
                 .collect(Collectors.toList());
-
         jdbcTemplate.batchUpdate(sql, batchArgs);
     }
 

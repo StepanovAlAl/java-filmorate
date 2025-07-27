@@ -26,7 +26,7 @@ public class FilmDbStorage implements FilmStorage {
                 .withTableName("films")
                 .usingGeneratedKeyColumns("id");
 
-        int filmId = simpleJdbcInsert.executeAndReturnKey(film.toMap()).intValue();
+        int filmId = simpleJdbcInsert.executeAndReturnKey(filmToMap(film)).intValue();
         film.setId(filmId);
         log.debug("Фильму присвоен ID: {}", filmId);
 
@@ -111,6 +111,16 @@ public class FilmDbStorage implements FilmStorage {
     public Set<Integer> getFilmLikes(int filmId) {
         String sql = "SELECT user_id FROM film_likes WHERE film_id = ?";
         return new HashSet<>(jdbcTemplate.queryForList(sql, Integer.class, filmId));
+    }
+
+    private Map<String, Object> filmToMap(Film film) {
+        Map<String, Object> values = new HashMap<>();
+        values.put("name", film.getName());
+        values.put("description", film.getDescription());
+        values.put("release_date", film.getReleaseDate());
+        values.put("duration", film.getDuration());
+        values.put("mpa_id", film.getMpa() != null ? film.getMpa().getId() : null);
+        return values;
     }
 
 }
