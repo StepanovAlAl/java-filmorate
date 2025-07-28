@@ -70,26 +70,26 @@ public class FilmDbStorage implements FilmStorage {
 
         // 1 запрос
         String filmsSql = """
-            SELECT f.*, m.name AS mpa_name, m.description AS mpa_description,
-                   COUNT(fl.user_id) AS likes_count
-            FROM films f
-            LEFT JOIN mpa m ON f.mpa_id = m.id
-            LEFT JOIN film_likes fl ON f.id = fl.film_id
-            GROUP BY f.id, m.id
-            """;
+                SELECT f.*, m.name AS mpa_name, m.description AS mpa_description,
+                       COUNT(fl.user_id) AS likes_count
+                FROM films f
+                LEFT JOIN mpa m ON f.mpa_id = m.id
+                LEFT JOIN film_likes fl ON f.id = fl.film_id
+                GROUP BY f.id, m.id
+                """;
 
         List<Film> films = jdbcTemplate.query(filmsSql, filmRowMapper);
 
         // 1 запрос
         String genresSql = """
-            SELECT fg.film_id, g.id, g.name 
-            FROM film_genres fg
-            JOIN genres g ON fg.genre_id = g.id
-            WHERE fg.film_id IN (
-                SELECT id FROM films
-            )
-            ORDER BY fg.film_id, g.id
-            """;
+                SELECT fg.film_id, g.id, g.name 
+                FROM film_genres fg
+                JOIN genres g ON fg.genre_id = g.id
+                WHERE fg.film_id IN (
+                    SELECT id FROM films
+                )
+                ORDER BY fg.film_id, g.id
+                """;
 
         Map<Integer, Set<Genre>> filmGenres = jdbcTemplate.query(genresSql, rs -> {
             Map<Integer, Set<Genre>> result = new HashMap<>();
@@ -138,15 +138,15 @@ public class FilmDbStorage implements FilmStorage {
 
         // 1 Запрос
         String filmsSql = """
-            SELECT f.*, m.name AS mpa_name, m.description AS mpa_description, 
-                   COUNT(fl.user_id) AS likes_count
-            FROM films f
-            LEFT JOIN mpa m ON f.mpa_id = m.id
-            LEFT JOIN film_likes fl ON f.id = fl.film_id
-            GROUP BY f.id, m.id
-            ORDER BY likes_count DESC, f.id DESC
-            LIMIT ?
-            """;
+                SELECT f.*, m.name AS mpa_name, m.description AS mpa_description, 
+                       COUNT(fl.user_id) AS likes_count
+                FROM films f
+                LEFT JOIN mpa m ON f.mpa_id = m.id
+                LEFT JOIN film_likes fl ON f.id = fl.film_id
+                GROUP BY f.id, m.id
+                ORDER BY likes_count DESC, f.id DESC
+                LIMIT ?
+                """;
 
         List<Film> films = jdbcTemplate.query(filmsSql, filmRowMapper, count);
 
@@ -156,12 +156,12 @@ public class FilmDbStorage implements FilmStorage {
 
         // 1 Запрос
         String genresSql = """
-            SELECT fg.film_id, g.id, g.name 
-            FROM film_genres fg
-            JOIN genres g ON fg.genre_id = g.id
-            WHERE fg.film_id IN (%s)
-            ORDER BY fg.film_id, g.id
-            """.formatted(
+                SELECT fg.film_id, g.id, g.name 
+                FROM film_genres fg
+                JOIN genres g ON fg.genre_id = g.id
+                WHERE fg.film_id IN (%s)
+                ORDER BY fg.film_id, g.id
+                """.formatted(
                 films.stream()
                         .map(f -> String.valueOf(f.getId()))
                         .collect(Collectors.joining(","))
