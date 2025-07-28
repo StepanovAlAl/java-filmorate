@@ -82,7 +82,7 @@ public class FilmDbStorage implements FilmStorage {
 
         // 1 запрос
         String genresSql = """
-                SELECT fg.film_id, g.id, g.name 
+                SELECT fg.film_id, g.id, g.name
                 FROM film_genres fg
                 JOIN genres g ON fg.genre_id = g.id
                 WHERE fg.film_id IN (
@@ -138,7 +138,7 @@ public class FilmDbStorage implements FilmStorage {
 
         // 1 Запрос
         String filmsSql = """
-                SELECT f.*, m.name AS mpa_name, m.description AS mpa_description, 
+                SELECT f.*, m.name AS mpa_name, m.description AS mpa_description,
                        COUNT(fl.user_id) AS likes_count
                 FROM films f
                 LEFT JOIN mpa m ON f.mpa_id = m.id
@@ -156,7 +156,7 @@ public class FilmDbStorage implements FilmStorage {
 
         // 1 Запрос
         String genresSql = """
-                SELECT fg.film_id, g.id, g.name 
+                SELECT fg.film_id, g.id, g.name
                 FROM film_genres fg
                 JOIN genres g ON fg.genre_id = g.id
                 WHERE fg.film_id IN (%s)
