@@ -67,9 +67,7 @@ public class FilmService {
 
     public Collection<Film> getAll() {
         log.debug("Получение всех фильмов");
-        Collection<Film> films = filmStorage.getAll();
-        films.forEach(f -> f.setGenres(new LinkedHashSet<>(genreDbStorage.getFilmGenres(f.getId()))));
-        return films;
+        return filmStorage.getAll();
     }
 
     public void addLike(int filmId, int userId) {
