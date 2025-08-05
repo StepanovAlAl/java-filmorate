@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.exception;
 
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -53,5 +55,19 @@ public class GlobalExceptionHandler {
     public Map<String, String> handleUnexpectedException(Exception ex) {
         log.error("Непредвиденная ошибка: {}", ex.getMessage(), ex);
         return Map.of("error", "Внутренняя ошибка сервера");
+    }
+
+    @ExceptionHandler(EmptyResultDataAccessException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleEmptyResultDataAccessException(EmptyResultDataAccessException ex) {
+        log.warn("Запрашиваемый объект не найден: {}", ex.getMessage());
+        return Map.of("error", "Запрашиваемый объект не найден");
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        log.warn("Ошибка целостности данных: {}", ex.getMessage());
+        return Map.of("error", "Запрашиваемый объект не найден");
     }
 }
